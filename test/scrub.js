@@ -43,14 +43,16 @@ exports.funcs = function () {
     assert.eql(calls, { f : 1, g : 1 });
 };
 
-exports.links = function () {
+exports.link = function () {
     var s = new Scrubber;
     var x = [ [ 0, { a : 1, b : 2, c : 3 }, 4 ], 5, 6 ];
-    x[0][1].d = x;
+    x[0][1].d = x[0][1];
     var sc = s.scrub(x);
     
     assert.eql(sc, {
-        arguments : [ [ 0, { a : 1, b : 2, c : 3 }, 4 ], 5, 6 ],
+        arguments : [
+            [ 0, { a : 1, b : 2, c : 3, d : '[Circular]' }, 4 ], 5, 6
+        ],
         callbacks : {},
         links : [ { from : [ '0', '1'  ], to : [ '0', '1', 'd' ] } ],
     });
