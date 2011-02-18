@@ -57,3 +57,24 @@ exports.link = function () {
         links : [ { from : [ '0', '1'  ], to : [ '0', '1', 'd' ] } ],
     });
 };
+
+exports.multilink = function () {
+    var s = new Scrubber;
+    var x = [ [ 0, { a : 1, b : 2, c : 3 }, 4 ], 5, 6 ];
+    x[0][1].d = x[0][1];
+    x[3] = x[0];
+    var sc = s.scrub(x);
+    console.dir(sc.links);
+    
+    assert.eql(sc, {
+        arguments : [
+            [ 0, { a : 1, b : 2, c : 3, d : '[Circular]' }, 4 ],
+            5, 6, '[Circular]'
+        ],
+        callbacks : {},
+        links : [
+            { from : [ '0', '1'  ], to : [ '0', '1', 'd' ] },
+            { from : [], to : [ '3' ] },
+        ],
+    });
+};
