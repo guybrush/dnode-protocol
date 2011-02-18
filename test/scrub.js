@@ -11,4 +11,47 @@ exports.noFuncs = function () {
             links : [],
         }
     );
+    
+    assert.eql(
+        s.scrub([ 4, { a : 5, b : 6 } ]),
+        {
+            arguments : [ 4, { a : 5, b : 6 } ],
+            callbacks : [],
+            links : [],
+        }
+    );
+};
+
+exports.funcs = function () {
+    var s = new Scrubber;
+    
+    var calls = { f : 0, g : 0 };
+    var f = function () { calls.f ++ };
+    var g = function () { calls.g ++ };
+    
+    var sc = s.scrub([ 1, 2, f, g ]);
+    assert.eql(sc, {
+        arguments : [ 1, 2, '[Function]', '[Function]' ],
+        callbacks : { 0 : [ '2' ], 1 : [ '3' ] },
+        links : [],
+    });
+    
+    s.callbacks[0]();
+    assert.eql(calls, { f : 1, g : 0 });
+    
+    s.callbacks[1]();
+    assert.eql(calls, { f : 1, g : 1 });
+};
+
+exports.links = function () {
+    var s = new Scrubber;
+    var x = [ [ 0, { a : 1, b : 2, c : 3 }, 4 ], 5, 6 ];
+    x[0][1].d = x;
+    var sc = s.scrub(x);
+    
+    assert.eql(sc, {
+        arguments : [ [ 0, { a : 1, b : 2, c : 3 }, 4 ], 5, 6 ],
+        callbacks : {},
+        links : [ { from : [ '0', '1'  ], to : [ '0', '1', 'd' ] } ],
+    });
 };
