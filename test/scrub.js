@@ -62,9 +62,8 @@ exports.multilink = function () {
     var s = new Scrubber;
     var x = [ [ 0, { a : 1, b : 2, c : 3 }, 4 ], 5, 6 ];
     x[0][1].d = x[0][1];
-    x[3] = x[0];
+    x.push(x);
     var sc = s.scrub(x);
-    console.dir(sc.links);
     
     assert.eql(sc, {
         arguments : [
