@@ -4,7 +4,7 @@ var EventEmitter = require('events').EventEmitter;
 var exports = module.exports = function (wrapper) {
     var self = {};
     
-    self.clients = {};
+    self.sessions = {};
     
     self.create = function () {
         var id = null;
@@ -12,24 +12,33 @@ var exports = module.exports = function (wrapper) {
             id = Math.floor(
                 Math.random() * Math.pow(2,32)
             ).toString(16);
-        } while (clients[id]);
+        } while (self.sessions[id]);
         
         var instance = typeof(wrapper) == 'function'
             ? new wrapper(self.remote, self)
-            : wrapper
+            : wrapper || {}
         ;
         
-        var client = Session(id);
-        clients[id] = client;
-        return client;
+        var s = Session(id);
+        s.id = id;
+        s.instance = instance;
+        
+        s.start = function () {
+            s.request('methods', [ s.instance ]);
+        };
+        
+        self.sessions[id] = s;
+        return s;
     };
     
     self.destroy = function (id) {
-        delete clients[id];
+        delete self.clients[id];
     };
+    
+    return self;
 };
 
-var Session = exports.Session = function () {
+var Session = exports.Session = function (id) {
     var self = new EventEmitter;
     self.remote = {};
     self.scrubber = new Scrubber;
@@ -37,12 +46,12 @@ var Session = exports.Session = function () {
     self.request = function (method, args) {
         var scrub = self.scrubber.scrub(args);
         
-        self.emit('request', JSON.stringify({
+        self.emit('request', {
             method : method,
             arguments : scrub.arguments,
             callbacks : scrub.callbacks,
             links : scrub.links
-        }) + '\n');
+        });
     };
     
     self.parse = function (line) {
