@@ -128,7 +128,7 @@ var Scrubber = exports.Scrubber = function () {
         var paths = {};
         var links = [];
         
-        var args = Traverse(obj).modify(function (node) {
+        var args = Traverse(obj).map(function (node) {
             if (typeof(node) == 'function') {
                 var i = wrapped.indexOf(node);
                 if (i >= 0 && !(i in paths)) {
@@ -150,12 +150,12 @@ var Scrubber = exports.Scrubber = function () {
                 links.push({ from : this.circular.path, to : this.path });
                 this.update('[Circular]');
             }
-        }).get();
+        });
         
         return {
             arguments : args,
             callbacks : paths,
-            links : links
+            links : links,
         };
     };
     
