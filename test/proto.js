@@ -19,23 +19,26 @@ exports.protoHashes = function () {
     var s = server.create();
     assert.ok(s.id);
     
-    var t0 = setTimeout(function () {
-        assert.fail('initial methods never sent');
+    var to = setTimeout(function () {
+        assert.fail('not enough responses');
     }, 1000);
     
-    s.once('request', function (req) {
-        clearTimeout(t0);
-        assert.eql(typeof req, 'object');
-        assert.eql(req, {
-            method : 'methods',
-            arguments : [ { x : '[Function]', y : 555 } ],
-            callbacks : { 0 : [ '0', 'x' ] },
-            links : [],
-        });
+    var reqs = [];
+    s.on('request', function (req) {
+        reqs.push(req);
         
-        s.on('request', function (req) {
-            console.dir(req);
-        });
+        if (reqs.length === 1) {
+            clearTimeout(to);
+            assert.eql(reqs, [
+                {
+                    method : 'methods',
+                    arguments : [ { x : '[Function]', y : 555 } ],
+                    callbacks : { 0 : [ '0', 'x' ] },
+                    links : [],
+                }
+            ]);
+        }
     });
+    
     s.start();
 };

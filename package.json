@@ -1,8 +1,8 @@
 {
     "name": "dnode-protocol",
-    "description": "Implements the dnode protocol abstractly without specifying a transport",
+    "description": "Implements the dnode protocol abstractly",
     "version": "0.0.1",
-    "repository": "https://github.com/substack/dnode-client.git",
+    "repository": "https://github.com/substack/dnode-protocol.git",
     "author": "James Halliday <mail@substack.net> (http://substack.net)",
     "main": "./index.js",
     "dependencies" : {
