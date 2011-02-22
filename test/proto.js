@@ -1,13 +1,8 @@
 var assert = require('assert');
 var proto = require('dnode-protocol');
+var Traverse = require('traverse');
 
 exports.protoHashes = function () {
-    var client = proto({
-        a : function (cb) { cb(1, 2, 3) },
-        b : function (n, cb) { cb(n * 10) },
-        c : 444,
-    });
-    
     var server = proto({
         x : function (f, g) {
             setTimeout(f.bind({}, 7, 8, 9), 50);
@@ -16,29 +11,55 @@ exports.protoHashes = function () {
         y : 555,
     });
     
+    var client = proto({});
+    
     var s = server.create();
-    assert.ok(s.id);
+    var c = client.create();
     
-    var to = setTimeout(function () {
-        assert.fail('not enough responses');
-    }, 1000);
-    
-    var reqs = [];
+    var sreqs = [];
     s.on('request', function (req) {
-        reqs.push(req);
-        
-        if (reqs.length === 1) {
-            clearTimeout(to);
-            assert.eql(reqs, [
-                {
-                    method : 'methods',
-                    arguments : [ { x : '[Function]', y : 555 } ],
-                    callbacks : { 0 : [ '0', 'x' ] },
-                    links : [],
-                }
-            ]);
-        }
+        sreqs.push(Traverse.clone(req));
+        c.handle(req);
     });
     
+    var creqs = [];
+    c.on('request', function (req) {
+        creqs.push(Traverse.clone(req));
+        s.handle(req);
+    });
+    
+    var tf = setTimeout(function () {
+        assert.fail('never called f');
+    }, 5000);
+    
+    var tg = setTimeout(function () {
+        assert.fail('never called g');
+    }, 5000);
+    
     s.start();
+    
+    assert.eql(sreqs, [ {
+        method : 'methods',
+        arguments : [ { x : '[Function]', y : 555 } ],
+        callbacks : { 0 : [ '0', 'x' ] },
+        links : [],
+    } ]);
+    
+    c.request('x', [
+        function (x, y , z) {
+            clearTimeout(tf); 
+            assert.eql([ x, y, z ], [ 7, 8, 9 ]);
+        },
+        function (qr) {
+            clearTimeout(tg);
+            assert.eql(qr, [ 'q', 'r' ]);
+        }
+    ]);
+    
+    assert.eql(creqs, [ {
+        method : 'x',
+        arguments : [ '[Function]', '[Function]' ],
+        callbacks : { 0 : [ '0' ], 1 : [ '1' ] },
+        links : [],
+    } ]);
 };

@@ -19,14 +19,7 @@ var exports = module.exports = function (wrapper) {
             : wrapper || {}
         ;
         
-        var s = Session(id);
-        s.id = id;
-        s.instance = instance;
-        
-        s.start = function () {
-            s.request('methods', [ s.instance ]);
-        };
-        
+        var s = Session(id, instance);
         self.sessions[id] = s;
         return s;
     };
@@ -38,13 +31,20 @@ var exports = module.exports = function (wrapper) {
     return self;
 };
 
-var Session = exports.Session = function (id) {
+var Session = exports.Session = function (id, instance) {
     var self = new EventEmitter;
+    self.instance = instance;
+    self.id = id;
+    
     self.remote = {};
-    self.scrubber = new Scrubber;
+    var scrubber = new Scrubber;
+    
+    self.start = function () {
+        self.request('methods', [ instance ]);
+    };
     
     self.request = function (method, args) {
-        var scrub = self.scrubber.scrub(args);
+        var scrub = scrubber.scrub(args);
         
         self.emit('request', {
             method : method,
@@ -67,12 +67,12 @@ var Session = exports.Session = function (id) {
     
     var wrapped = {};
     self.handle = function (req) {
-        var args = self.scrubber.unscrub(req, function (id) {
+        var args = scrubber.unscrub(req, function (id) {
             if (!(id in wrapped)) {
                 // create a new function only if one hasn't already been created
                 // for a particular id
                 wrapped[id] = function () {
-                    self.sendRequest(id, [].slice.apply(arguments));
+                    self.request(id, [].slice.apply(arguments));
                 };
             }
             return wrapped[id];
@@ -85,12 +85,14 @@ var Session = exports.Session = function (id) {
             var methods = args[0];
             self.emit('remoteError', methods);
         }
-        else if (typeof req.method == 'string') {
+        else if (typeof req.method === 'string') {
             if (self.instance.propertyIsEnumerable(req.method)) {
                 apply(self.instance[req.method], self.instance, args);
             }
             else {
-                console.warn('Request for non-enumerable method: ' + req.method);
+                self.emit('error', new Error(
+                    'Request for non-enumerable method: ' + req.method
+                ));
             }
         }
         else if (typeof req.method == 'number') {
