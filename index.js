@@ -14,12 +14,7 @@ var exports = module.exports = function (wrapper) {
             ).toString(16);
         } while (self.sessions[id]);
         
-        var instance = typeof(wrapper) == 'function'
-            ? new wrapper(self.remote, self)
-            : wrapper || {}
-        ;
-        
-        var s = Session(id, instance);
+        var s = Session(id, wrapper);
         self.sessions[id] = s;
         return s;
     };
@@ -31,9 +26,15 @@ var exports = module.exports = function (wrapper) {
     return self;
 };
 
-var Session = exports.Session = function (id, instance) {
+var Session = exports.Session = function (id, wrapper) {
     var self = new EventEmitter;
-    self.instance = instance;
+    
+    var instance = self.instance =
+        typeof(wrapper) == 'function'
+            ? new wrapper(self.remote, self)
+            : wrapper || {}
+    ;
+    
     self.id = id;
     
     self.remote = {};
