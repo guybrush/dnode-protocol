@@ -29,15 +29,15 @@ var exports = module.exports = function (wrapper) {
 var Session = exports.Session = function (id, wrapper) {
     var self = new EventEmitter;
     
+    self.id = id;
+    self.remote = {};
+    
     var instance = self.instance =
         typeof(wrapper) == 'function'
             ? new wrapper(self.remote, self)
             : wrapper || {}
     ;
     
-    self.id = id;
-    
-    self.remote = {};
     var scrubber = new Scrubber;
     
     self.start = function () {

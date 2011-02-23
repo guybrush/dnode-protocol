@@ -62,7 +62,7 @@ exports.protoFn = function () {
     
     assert.eql(creqs, [ {
         method : 'methods',
-        arguments : [ {} ],
+        arguments : [ { a : 1, b : 2 } ],
         callbacks : {},
         links : [],
     } ]);
