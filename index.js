@@ -57,12 +57,15 @@ var Session = exports.Session = function (id, instance) {
     self.parse = function (line) {
         var msg = null;
         try { msg = JSON.parse(line) }
-        catch (err) { self.emit('error', err) }
-        
-        if (msg) {
-            try { self.handle(msg) }
-            catch (err) { self.emit('error', err) }
+        catch (err) {
+            self.emit('error', new SyntaxError(
+                'Error parsing JSON message: ' + JSON.stringify(line))
+            );
+            return;
         }
+        
+        try { self.handle(msg) }
+        catch (err) { self.emit('error', err) }
     };
     
     var wrapped = {};

@@ -8,7 +8,7 @@ exports.protoHashes = function () {
             setTimeout(f.bind({}, 7, 8, 9), 50);
             setTimeout(g.bind({}, [ 'q', 'r' ]), 100);
         },
-        y : 555,
+        y : 555
     });
     
     var client = proto({});
@@ -71,4 +71,15 @@ exports.protoHashes = function () {
         callbacks : { 0 : [ '0' ], 1 : [ '1' ] },
         links : [],
     } ]);
+    
+    var tt = setTimeout(function () {
+        assert.fail('broken json never emitted an error');
+    }, 5000);
+    c.on('error', function (err) {
+        clearTimeout(tt);
+        assert.ok(err.stack);
+        assert.ok(err.message.match(/^Error parsing JSON/));
+        assert.ok(err instanceof SyntaxError);
+    });
+    c.parse('{');
 };
