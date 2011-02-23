@@ -45,6 +45,15 @@ exports.protoHashes = function () {
         links : [],
     } ]);
     
+    c.start();
+    
+    assert.eql(creqs, [ {
+        method : 'methods',
+        arguments : [ {} ],
+        callbacks : {},
+        links : [],
+    } ]);
+    
     c.request('x', [
         function (x, y , z) {
             clearTimeout(tf); 
@@ -56,7 +65,7 @@ exports.protoHashes = function () {
         }
     ]);
     
-    assert.eql(creqs, [ {
+    assert.eql(creqs.slice(1), [ {
         method : 'x',
         arguments : [ '[Function]', '[Function]' ],
         callbacks : { 0 : [ '0' ], 1 : [ '1' ] },
