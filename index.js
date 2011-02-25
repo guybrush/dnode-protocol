@@ -1,5 +1,6 @@
 var Traverse = require('traverse');
 var EventEmitter = require('events').EventEmitter;
+var net = process.title === 'browser' ? {} : require('net');
 
 var exports = module.exports = function (wrapper) {
     var self = {};
@@ -242,7 +243,7 @@ var parseArgs = exports.parseArgs = function (argv) {
                     params[key] = arg[key];
                 });
             }
-            else if (arg instanceof net.Stream) {
+            else if (net.Stream && arg instanceof net.Stream) {
                 params.stream = arg;
             }
             else {
