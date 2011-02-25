@@ -223,7 +223,7 @@ var parseArgs = exports.parseArgs = function (argv) {
     [].slice.call(argv).forEach(function (arg) {
         if (typeof arg === 'string') {
             if (arg.match(/^\d+$/)) {
-                params.port = arg;
+                params.port = parseInt(arg, 10);
             }
             else {
                 params.host = arg;
