@@ -171,7 +171,7 @@ var Scrubber = exports.Scrubber = function () {
         return {
             arguments : args,
             callbacks : paths,
-            links : links,
+            links : links
         };
     };
     
